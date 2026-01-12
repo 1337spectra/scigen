@@ -1,431 +1,728 @@
-# SCIgen Modernization Plan
+# SCIgen Python Rewrite Plan
 
 **Created**: 2026-01-12
-**Status**: Planning Phase
+**Updated**: 2026-01-12
+**Status**: Planning Phase → Python Rewrite
 **Branch**: `claude/init-archived-project-2Tefy`
+**Approach**: **Security-First Python Rewrite with OWASP Compliance**
 
 ## Overview
 
-This document provides an atomic, actionable plan to modernize the SCIgen codebase from its 2005 state to a modern, maintainable project suitable for AI enhancement.
+This document provides an atomic, actionable plan to **rewrite SCIgen from Perl to Python** with security as a first-class requirement. Rather than modernizing 21-year-old Perl code, we're building a sustainable, secure foundation suitable for long-term maintenance and AI enhancement.
+
+## Strategic Decision: Python Rewrite
+
+**Why Rewrite Instead of Modernize?**
+- **Sustainability**: Python has a larger, more active community
+- **AI Ecosystem**: Superior LLM libraries (OpenAI SDK, Anthropic SDK, LangChain)
+- **Modern Tooling**: Better testing (pytest), packaging (Poetry), type hints
+- **Long-term Viability**: Python is a top-tier language unlikely to decline
+- **Clean Start**: Build security in from day one, not bolt it on later
+
+**What We're Preserving**:
+- Original grammar files (.in files) - they're language-agnostic
+- Core grammar expansion algorithm (CFG with weighted rules)
+- Seed-based reproducibility
+- Command-line interface patterns
+- Original behavior and output quality
 
 ---
 
-## Phase 0: Foundation & Assessment
+## Security Philosophy (OWASP Compliance)
 
-**Goal**: Understand current state and establish baseline functionality
+**Every phase integrates security requirements**. We follow:
+- **OWASP Top 10** (web application security)
+- **OWASP Top 10 for LLM Applications** (AI-specific threats)
+- **Security by Design** (not an afterthought)
+- **Defense in Depth** (multiple validation layers)
+- **Principle of Least Privilege** (minimal permissions)
 
-### 0.1 Environment Setup
-- [ ] Test if Perl scripts run on modern systems
-- [ ] Document which dependencies are already installed
-- [ ] Identify missing dependencies (LaTeX, gnuplot, etc.)
-- [ ] Test basic paper generation: `./make-latex.pl --author "Test" --seed 1 --savedir test_output`
-- [ ] Document what works and what breaks
-
-### 0.2 Basic Project Hygiene
-- [ ] Create `.gitignore` for LaTeX artifacts (`*.aux`, `*.log`, `*.dvi`, `*.bbl`, `*.blg`, `*.ps`)
-- [ ] Add temp directories to `.gitignore` (`/tmp/`, `/test_output/`)
-- [ ] Create `CONTRIBUTING.md` with development guidelines
-- [ ] Update `README.md` with actual setup and usage instructions
-- [ ] Add version/changelog tracking (create `CHANGELOG.md`)
-
-### 0.3 Documentation
-- [x] Create `CLAUDE.md` with comprehensive project documentation
-- [x] Create `PLAN.md` (this file)
-- [ ] Add inline code comments to core functions in `scigen.pm`
-- [ ] Document grammar rule syntax in dedicated `GRAMMAR.md`
-- [ ] Create architecture diagram showing component relationships
+Key Security Principles:
+1. **Input Validation**: Pydantic models for ALL user inputs
+2. **Output Sanitization**: Escape LaTeX, HTML, shell commands
+3. **Secrets Management**: Environment variables, never hardcoded
+4. **Dependency Security**: Automated scanning and updates
+5. **Prompt Injection Prevention**: Critical for AI features
+6. **Fail Securely**: Default deny, explicit allow
 
 ---
 
-## Phase 1: Dependencies & Portability
+## Phase 0: Architecture & Planning
 
-**Goal**: Make the project run reliably on modern systems
+**Goal**: Design the Python architecture and establish development foundations
 
-### 1.1 Dependency Management
-- [ ] Create `cpanfile` listing all Perl module dependencies
-- [ ] Create `system-dependencies.txt` listing external tools (LaTeX, gnuplot, etc.)
-- [ ] Write `install-deps.sh` script for Ubuntu/Debian
-- [ ] Write `install-deps-mac.sh` script for macOS (brew-based)
-- [ ] Test dependency installation on clean Ubuntu container
-- [ ] Test dependency installation on clean macOS system
+### 0.1 Perl Codebase Analysis
+- [ ] Deep dive into `scigen.pm` grammar engine
+- [ ] Document all grammar rule features (weighted, non-duplicate, counters)
+- [ ] Analyze rule expansion algorithm (recursion, randomization)
+- [ ] Document pretty_print/formatting logic
+- [ ] Map all Perl dependencies to Python equivalents
+- [ ] Identify security issues in original Perl code
+- [ ] Create comparison test suite (Perl vs Python outputs)
 
-### 1.2 Path & Filesystem Fixes
-- [ ] Replace hardcoded `/tmp` with `File::Temp->newdir()` in `make-latex.pl`
-- [ ] Replace hardcoded `/tmp` with `File::Temp->newdir()` in `make-graph.pl`
-- [ ] Replace hardcoded `/tmp` with `File::Temp->newdir()` in `make-diagram.pl`
-- [ ] Replace hardcoded `/tmp` with `File::Temp->newdir()` in `make-talk-figure.pl`
-- [ ] Make scripts work from any directory (use `FindBin` for relative paths)
-- [ ] Update file path handling to use `File::Spec` for cross-platform compatibility
-- [ ] Test running scripts from different working directories
+### 0.2 Python Architecture Design
+- [ ] Design module structure (`scigen/`, `scigen/core/`, `scigen/generators/`)
+- [ ] Define Pydantic models for configuration
+- [ ] Design Pydantic models for input validation
+- [ ] Choose CLI framework (Click vs Typer)
+- [ ] Choose plotting library (matplotlib vs plotly)
+- [ ] Design plugin architecture for extensibility
+- [ ] Create architecture diagram (modules, data flow)
 
-### 1.3 External Tool Updates
-- [ ] Replace `gv` viewer with modern alternative (`evince`, `okular`, or skip viewer)
-- [ ] Replace `acroread` with modern PDF viewer or remove dependency
-- [ ] Update `ps2epsi` calls or replace with modern alternatives
-- [ ] Add fallback options for missing optional tools (graceful degradation)
-- [ ] Add tool detection script that checks for all dependencies
-- [ ] Update LaTeX compilation to support both old and new toolchains
+### 0.3 Project Setup
+- [ ] Create Python project with Poetry (`poetry init`)
+- [ ] Set up project structure (src layout)
+- [ ] Configure Poetry dependencies (core, dev, optional)
+- [ ] Set up pytest with coverage
+- [ ] Configure mypy for strict type checking
+- [ ] Configure ruff for linting and formatting
+- [ ] Set up pre-commit hooks
+- [ ] Create `.gitignore` for Python (`.venv/`, `__pycache__/`, etc.)
 
-### 1.4 LaTeX Template Updates
-- [ ] Research latest IEEEtran.cls version and compatibility
-- [ ] Update `IEEEtran.cls` to latest version (or keep for compatibility)
-- [ ] Test paper generation with updated templates
-- [ ] Verify PDF output quality and formatting
-- [ ] Document any breaking changes in template updates
+### 0.4 Security Infrastructure
+- [ ] Add Safety for dependency scanning
+- [ ] Add Bandit for SAST (security linting)
+- [ ] Configure python-dotenv for secrets
+- [ ] Create SECURITY.md with vulnerability reporting
+- [ ] Set up security testing framework
+- [ ] Create OWASP compliance checklist
+- [ ] Document threat model
+
+### 0.5 Documentation Foundation
+- [x] Update CLAUDE.md with Python rewrite decision
+- [x] Update PLAN.md (this file) with atomic tasks
+- [ ] Create GRAMMAR.md documenting rule syntax
+- [ ] Create CONTRIBUTING.md with development guidelines
+- [ ] Create CHANGELOG.md for version tracking
+- [ ] Set up documentation framework (Sphinx or MkDocs)
 
 ---
 
-## Phase 2: Code Quality & Security
+## Phase 1: Core Grammar Engine
 
-**Goal**: Modernize code practices and fix security issues
+**Goal**: Port the context-free grammar expansion engine to Python with security
 
-### 2.1 Perl Modernization
-- [ ] Add `use strict;` and `use warnings;` to all scripts
-- [ ] Fix all strict/warnings violations in `make-latex.pl`
-- [ ] Fix all strict/warnings violations in `make-graph.pl`
-- [ ] Fix all strict/warnings violations in `make-diagram.pl`
-- [ ] Fix all strict/warnings violations in `make-talk-figure.pl`
-- [ ] Fix all strict/warnings violations in `scigen.pm`
-- [ ] Fix all strict/warnings violations in `scigend`
-- [ ] Replace `our` with proper scoping where appropriate
-- [ ] Add POD (Perl documentation) to `scigen.pm`
-- [ ] Add POD to main scripts
+**Critical Path**: This is the foundation - everything depends on it
 
-### 2.2 Security Hardening
-- [ ] Audit all `system()` calls in `make-latex.pl`
-- [ ] Replace unsafe `system()` calls with list form or IPC::Run
-- [ ] Sanitize file paths passed to external commands
-- [ ] Review `eval()` usage for mathematical expressions
-- [ ] Add input validation for command-line arguments
-- [ ] Add input validation for author names (prevent shell injection)
-- [ ] Add input validation for system names
-- [ ] Add input validation for seed values
-- [ ] Run security linter (Perl::Critic) and fix issues
-- [ ] Document security considerations in SECURITY.md
+### 1.1 Grammar File Parser
+- [ ] Design GrammarRule data class (Pydantic model)
+- [ ] Implement grammar file reader (`.in` file format)
+- [ ] **Security**: Validate file paths (prevent directory traversal)
+- [ ] **Security**: Limit file size (prevent DoS)
+- [ ] Parse basic rules (RULE_NAME with options)
+- [ ] Parse weighted rules (`RULE+N` syntax)
+- [ ] Parse non-duplicate rules (`RULE!` syntax)
+- [ ] Parse sequential counters (`RULE+` syntax)
+- [ ] Parse random selection (`RULE#` syntax)
+- [ ] Parse `.include` directives
+- [ ] Handle circular dependency detection
+- [ ] Unit tests for parser (100+ test cases)
 
-### 2.3 Error Handling
-- [ ] Add proper error handling to file operations in `scigen.pm`
-- [ ] Add meaningful error messages for missing dependencies
-- [ ] Add error handling for LaTeX compilation failures
-- [ ] Add error handling for graph generation failures
-- [ ] Add error handling for diagram generation failures
-- [ ] Replace `die` with more user-friendly error messages
-- [ ] Add `--debug` flag for verbose error output
-- [ ] Create error code reference in documentation
+### 1.2 Rule Expansion Engine
+- [ ] Implement recursive rule expansion
+- [ ] Implement weighted random selection
+- [ ] Implement non-duplicate tracking
+- [ ] Implement sequential counters
+- [ ] Implement random selection mode
+- [ ] Handle nested rule references
+- [ ] **Security**: Limit recursion depth (prevent stack overflow)
+- [ ] **Security**: Timeout long expansions (prevent DoS)
+- [ ] Unit tests against Perl reference outputs
+- [ ] Performance benchmarks
 
-### 2.4 Code Refactoring
-- [ ] Extract magic numbers to named constants
-- [ ] Break down long functions in `make-latex.pl` (> 50 lines)
-- [ ] Separate concerns in `scigen.pm` (parsing vs. expansion vs. formatting)
-- [ ] Remove dead code and commented-out sections
-- [ ] Standardize variable naming conventions
-- [ ] Add type hints/documentation for function parameters
-- [ ] Create utility module for common operations
+### 1.3 Text Formatting & Prettification
+- [ ] Implement capitalization logic
+- [ ] Implement LaTeX cleanup (spacing, punctuation)
+- [ ] **Security**: Sanitize LaTeX special characters (%, $, \, {, })
+- [ ] Handle abbreviations and acronyms
+- [ ] Format citations and references
+- [ ] Unit tests for formatting edge cases
+
+### 1.4 Core API Design
+- [ ] Create `SCIgen` main class
+- [ ] Implement `load_grammar(file_path)` method
+- [ ] Implement `expand_rule(rule_name, seed)` method
+- [ ] Implement `generate_paper(config)` method
+- [ ] **Security**: Input validation for all methods (Pydantic)
+- [ ] Thread-safety considerations
+- [ ] Integration tests
+- [ ] API documentation (docstrings + type hints)
+
+---
+
+## Phase 2: Paper Generation
+
+**Goal**: Generate complete LaTeX papers matching original Perl output
+
+### 2.1 LaTeX Template System
+- [ ] Design template structure (Jinja2 vs string.Template)
+- [ ] Port main paper template
+- [ ] Port bibliography template
+- [ ] Port figure/table templates
+- [ ] **Security**: Safe variable substitution (no eval/exec)
+- [ ] **Security**: Escape all user inputs in LaTeX
+- [ ] Support multiple LaTeX document classes
+- [ ] Template inheritance for customization
+
+### 2.2 Paper Structure Generation
+- [ ] Generate title from grammar
+- [ ] Generate abstract (SCI_ABSTRACT rule)
+- [ ] Generate introduction
+- [ ] Generate methodology/implementation sections
+- [ ] Generate evaluation/results sections
+- [ ] Generate related work
+- [ ] Generate conclusion
+- [ ] Maintain consistent narrative (context tracking)
+- [ ] Integration tests (compare to Perl outputs)
+
+### 2.3 Bibliography Generation
+- [ ] Generate author names (non-duplicate)
+- [ ] Generate paper titles
+- [ ] Generate conference/journal names
+- [ ] Generate publication years
+- [ ] Generate citation keys
+- [ ] Format BibTeX entries
+- [ ] **Security**: Sanitize bibliography fields
+- [ ] Fix original bugs (duplicate authors, name mismatches)
+- [ ] Regression tests for bug fixes
+
+### 2.4 LaTeX Compilation Pipeline
+- [ ] Detect available LaTeX distribution (pdflatex, lualatex)
+- [ ] Run pdflatex (with proper subprocess handling)
+- [ ] Run bibtex for bibliography
+- [ ] Run pdflatex again (2 passes for references)
+- [ ] **Security**: Sanitize file paths
+- [ ] **Security**: Validate LaTeX command injection
+- [ ] Error handling for compilation failures
+- [ ] Parse LaTeX logs for meaningful errors
+- [ ] Timeout protection
 
 ### 2.5 Command-Line Interface
-- [ ] Add `--help` flag to `make-latex.pl`
-- [ ] Add `--version` flag to all scripts
-- [ ] Improve `--help` output with examples
-- [ ] Add `--quiet` flag to suppress output
-- [ ] Add `--verbose` flag for detailed progress
-- [ ] Standardize exit codes (0 = success, 1 = error, 2 = usage)
-- [ ] Add `--dry-run` flag to preview without generating
+- [ ] Implement CLI with Click/Typer
+- [ ] Add `--author` flag (multiple authors supported)
+- [ ] Add `--seed` flag (reproducibility)
+- [ ] Add `--file` flag (output path)
+- [ ] Add `--savedir` flag (save source)
+- [ ] Add `--sysname` flag (custom system name)
+- [ ] Add `--help` with examples
+- [ ] Add `--version` flag
+- [ ] **Security**: Validate all CLI inputs (Pydantic)
+- [ ] Rich output (progress bars, colors)
+- [ ] Comprehensive help text
 
 ---
 
-## Phase 3: Testing & Validation
+## Phase 3: Graphics & Diagrams
 
-**Goal**: Ensure reliability and prevent regressions
+**Goal**: Generate scientific figures using Python libraries
 
-### 3.1 Testing Framework
-- [ ] Install Test::More and Test::Simple
-- [ ] Create `t/` directory for tests
-- [ ] Write test for grammar file parsing (`t/01-parse-rules.t`)
-- [ ] Write test for basic rule expansion (`t/02-expand-rules.t`)
-- [ ] Write test for paper generation with seed (`t/03-generate-paper.t`)
-- [ ] Write test for graph generation (`t/04-generate-graph.t`)
-- [ ] Write test for diagram generation (`t/05-generate-diagram.t`)
-- [ ] Write test for LaTeX compilation (`t/06-latex-compile.t`)
-- [ ] Add regression tests for known bugs
-- [ ] Create test helper utilities
+### 3.1 Graph Generation (matplotlib)
+- [ ] Port scatter plot generation
+- [ ] Port line graph generation
+- [ ] Port bar chart generation
+- [ ] Port CDF (cumulative distribution) plots
+- [ ] Generate random mathematical functions
+- [ ] Add realistic noise to data
+- [ ] Support error bars
+- [ ] Export to EPS/PDF/PNG
+- [ ] Match original aesthetic
+- [ ] Unit tests for each graph type
 
-### 3.2 Bug Fixes
-- [ ] Fix bug #1: Author names appearing multiple times in single reference
-- [ ] Write test to verify bug #1 fix
-- [ ] Fix bug #2: Author name mismatches between citations and text
-- [ ] Write test to verify bug #2 fix
-- [ ] Test all known edge cases from TODO and IDEAS files
-- [ ] Fix any newly discovered bugs
-- [ ] Document all bug fixes in CHANGELOG.md
+### 3.2 Network Diagram Generation
+- [ ] Integrate Graphviz Python bindings
+- [ ] Generate directed graphs
+- [ ] Generate undirected graphs
+- [ ] Support various node shapes
+- [ ] Support edge labels
+- [ ] Use grammar for diagram structure
+- [ ] Export to multiple formats
+- [ ] Visual regression tests
 
-### 3.3 CI/CD Setup
-- [ ] Create `.github/workflows/test.yml` for GitHub Actions
-- [ ] Add CI job: Perl syntax check (perl -c)
-- [ ] Add CI job: Perl::Critic linting
-- [ ] Add CI job: Run test suite
-- [ ] Add CI job: Test paper generation
-- [ ] Add CI job: Test on Ubuntu latest
-- [ ] Add CI job: Test on macOS latest
-- [ ] Add status badge to README.md
-
-### 3.4 Validation
-- [ ] Generate 100 papers with different seeds, verify no crashes
-- [ ] Verify LaTeX output compiles cleanly
-- [ ] Verify generated PDFs are readable
-- [ ] Compare output with original SCIgen (spot check)
-- [ ] Test all command-line flag combinations
-- [ ] Test edge cases (empty author, very long names, special characters)
-- [ ] Performance benchmark (time to generate 10 papers)
+### 3.3 Figure Integration
+- [ ] Embed figures in LaTeX automatically
+- [ ] Generate figure captions from grammar
+- [ ] Number figures sequentially
+- [ ] Reference figures in text
+- [ ] Handle figure placement
+- [ ] Support multiple figures per paper
+- [ ] Test figure compilation in LaTeX
 
 ---
 
-## Phase 4: Containerization & Distribution
+## Phase 4: Testing & Quality Assurance
 
-**Goal**: Make deployment easy and consistent
+**Goal**: Comprehensive testing with security focus
 
-### 4.1 Docker Support
-- [ ] Create `Dockerfile` with all dependencies
-- [ ] Base image: Ubuntu LTS with Perl, LaTeX, gnuplot
-- [ ] Test build: `docker build -t scigen .`
-- [ ] Test run: `docker run scigen --author "Test"`
-- [ ] Optimize image size (multi-stage build if needed)
-- [ ] Create `docker-compose.yml` for easy usage
-- [ ] Add volume mounts for output directory
-- [ ] Document Docker usage in README.md
-- [ ] Push image to Docker Hub (optional)
+### 4.1 Unit Testing
+- [ ] Test grammar parser (all rule types)
+- [ ] Test rule expansion (randomization, weights)
+- [ ] Test formatting logic
+- [ ] Test LaTeX generation
+- [ ] Test bibliography generation
+- [ ] Test figure generation
+- [ ] **Security**: Test input validation (fuzzing)
+- [ ] **Security**: Test injection attempts (LaTeX, shell)
+- [ ] Achieve >90% code coverage
+- [ ] Parametrized tests with multiple seeds
 
-### 4.2 Alternative Packaging
-- [ ] Create installation script (`install.sh`)
-- [ ] Consider creating `.deb` package (Debian/Ubuntu)
-- [ ] Consider creating Homebrew formula (macOS)
-- [ ] Consider creating snap package
-- [ ] Test installation on clean systems
-- [ ] Add uninstall script
-- [ ] Document installation methods in README.md
+### 4.2 Integration Testing
+- [ ] Test full paper generation pipeline
+- [ ] Test LaTeX compilation end-to-end
+- [ ] Test with different LaTeX distributions
+- [ ] Test on different operating systems
+- [ ] Test edge cases (long names, special characters)
+- [ ] Test error conditions gracefully
+- [ ] Performance tests (generation speed)
 
-### 4.3 Release Process
-- [ ] Set up semantic versioning (MAJOR.MINOR.PATCH)
-- [ ] Tag first modernized release as `v2.0.0`
-- [ ] Create GitHub release with binaries/archives
-- [ ] Update CHANGELOG.md for each release
-- [ ] Create release checklist document
-- [ ] Automate release process with GitHub Actions
+### 4.3 Regression Testing
+- [ ] Compare Python outputs to Perl outputs
+- [ ] Verify paper structure consistency
+- [ ] Verify seed reproducibility
+- [ ] Test bug fixes (duplicate authors, etc.)
+- [ ] Generate 100+ papers for smoke testing
+- [ ] Visual diff on generated PDFs
 
----
+### 4.4 Security Testing
+- [ ] **Security**: Prompt injection test suite
+- [ ] **Security**: LaTeX injection attempts
+- [ ] **Security**: File path traversal attempts
+- [ ] **Security**: Command injection attempts
+- [ ] **Security**: DoS attempts (large files, deep recursion)
+- [ ] **Security**: Dependency vulnerability scanning
+- [ ] **Security**: SAST with Bandit
+- [ ] **Security**: DAST (Dynamic testing)
+- [ ] Penetration testing checklist
 
-## Phase 5: Enhanced Features
-
-**Goal**: Add modern functionality while preserving core behavior
-
-### 5.1 Output Format Options
-- [ ] Add `--format pdf` flag (default to PDF instead of PS)
-- [ ] Add `--format html` flag (LaTeX → HTML conversion)
-- [ ] Add `--format docx` flag (via pandoc)
-- [ ] Add `--format markdown` flag (simplified output)
-- [ ] Test all output formats
-- [ ] Document format options in help text
-
-### 5.2 Configuration System
-- [ ] Create `~/.scigenrc` support for default options
-- [ ] Support project-level `.scigen.conf` files
-- [ ] Add `--config` flag to specify custom config
-- [ ] Document configuration file format
-- [ ] Add example configuration files
-
-### 5.3 Extended Grammar Support
-- [ ] Create `rules/` directory for grammar organization
-- [ ] Move grammar files to `rules/` directory
-- [ ] Update scripts to look in `rules/` directory
-- [ ] Create grammar file for biology papers (`rules/bio.in`)
-- [ ] Create grammar file for physics papers (`rules/physics.in`)
-- [ ] Add `--field` flag to select domain (cs, bio, physics)
-- [ ] Test cross-domain generation
-
-### 5.4 Citation Style Support
-- [ ] Research APA citation format requirements
-- [ ] Create `APA.bst` BibTeX style
-- [ ] Research MLA citation format requirements
-- [ ] Create `MLA.bst` BibTeX style
-- [ ] Add `--cite-style` flag (ieee, apa, mla, chicago)
-- [ ] Test paper generation with different citation styles
-- [ ] Document citation style options
-
-### 5.5 Additional Content Types
-- [ ] Add theorem generation (based on IDEAS file)
-- [ ] Add lemma generation
-- [ ] Add proof generation (structured gibberish)
-- [ ] Add table generation with random data
-- [ ] Add equation generation (beyond current math)
-- [ ] Add algorithm pseudocode generation
-- [ ] Add experimental data tables
-- [ ] Test integration with main paper
-
-### 5.6 Web Interface (Optional)
-- [ ] Design simple web UI mockup
-- [ ] Choose web framework (Flask/FastAPI for Python, Express for Node.js)
-- [ ] Create API wrapper around Perl scripts
-- [ ] Build form for author names, seed, options
-- [ ] Add real-time generation progress indicator
-- [ ] Add download button for generated PDF
-- [ ] Add gallery of example papers
-- [ ] Deploy web interface (Heroku, Vercel, or Docker)
-- [ ] Document API endpoints
+### 4.5 Type Checking & Linting
+- [ ] Run mypy in strict mode (no Any types)
+- [ ] Fix all type errors
+- [ ] Run ruff linter
+- [ ] Fix all linting issues
+- [ ] Enforce with pre-commit hooks
+- [ ] Check in CI pipeline
 
 ---
 
-## Phase 6: AI Integration
+## Phase 5: Packaging & Distribution
 
-**Goal**: Enhance SCIgen with modern AI capabilities
+**Goal**: Make installation and deployment easy
 
-### 6.1 LLM-Enhanced Content Generation
-- [ ] Research appropriate AI models (GPT-4, Claude, Llama)
-- [ ] Design prompt templates for paper sections
-- [ ] Add `--ai-mode` flag for LLM-enhanced generation
-- [ ] Generate more coherent abstracts using LLM
-- [ ] Generate more coherent introductions using LLM
-- [ ] Keep methodology/results as gibberish (original behavior)
-- [ ] Add coherence control slider (0% = pure gibberish, 100% = full LLM)
-- [ ] Test output quality at different coherence levels
-- [ ] Compare generation speed (classic vs AI-enhanced)
-- [ ] Document AI integration in README.md
+### 5.1 Python Package
+- [ ] Configure Poetry for PyPI publishing
+- [ ] Create entry points for CLI commands
+- [ ] Include grammar files in package data
+- [ ] Include LaTeX templates in package data
+- [ ] Write comprehensive README for PyPI
+- [ ] Add classifiers and keywords
+- [ ] Test installation via `pip install scigen`
+- [ ] Publish to Test PyPI first
+- [ ] Publish to PyPI
 
-### 6.2 Grammar Rule Generation
-- [ ] Design LLM prompts to generate grammar rules
-- [ ] Generate additional CS vocabulary using AI
-- [ ] Expand system_names.in with AI-generated terms
-- [ ] Add rules for emerging tech (blockchain, ML, quantum)
-- [ ] Validate generated rules don't break expansion engine
-- [ ] Create tool to auto-expand grammar files with AI
+### 5.2 Docker Container
+- [ ] Create Dockerfile (multi-stage build)
+- [ ] Base image: Python 3.11+ slim
+- [ ] Install LaTeX distribution (minimal)
+- [ ] Install Python dependencies
+- [ ] Copy grammar files and templates
+- [ ] Configure entry point
+- [ ] Test: `docker build -t scigen .`
+- [ ] Test: `docker run scigen --author "Test"`
+- [ ] Optimize image size (<500MB)
+- [ ] Push to Docker Hub
+- [ ] Document Docker usage
 
-### 6.3 Style Transfer
-- [ ] Collect corpus of papers from specific authors/journals
-- [ ] Extract stylistic features (sentence length, vocabulary, structure)
-- [ ] Add `--mimic` flag to imitate style
-- [ ] Test mimicry of famous CS authors (Knuth, Dijkstra, etc.)
-- [ ] Add disclaimer about ethical use
-- [ ] Document style transfer capabilities
+### 5.3 CI/CD Pipeline
+- [ ] Create `.github/workflows/test.yml`
+- [ ] CI: Run pytest on Ubuntu
+- [ ] CI: Run pytest on macOS
+- [ ] CI: Run pytest on Windows
+- [ ] CI: Run mypy type checking
+- [ ] CI: Run ruff linting
+- [ ] CI: Security scan with Safety
+- [ ] CI: Security scan with Bandit
+- [ ] CI: Dependency audit
+- [ ] CI: Build Docker image
+- [ ] CI: Test Docker image
+- [ ] CD: Auto-publish to PyPI on tag
+- [ ] CD: Auto-publish Docker on tag
+- [ ] Add status badges to README
 
-### 6.4 SCIgen Detection
-- [ ] Build classifier to detect SCIgen-generated papers
-- [ ] Train on corpus of real papers vs SCIgen papers
-- [ ] Create `scigen-detect.pl` script
-- [ ] Add API endpoint for detection service
-- [ ] Test accuracy on historical accepted SCIgen papers
-- [ ] Document detection methodology
-- [ ] Consider releasing as separate tool
+### 5.4 Documentation
+- [ ] Set up documentation site (MkDocs or Sphinx)
+- [ ] Write installation guide
+- [ ] Write usage guide with examples
+- [ ] Document CLI options
+- [ ] Document Python API
+- [ ] Write developer guide
+- [ ] Document grammar rule syntax
+- [ ] Add tutorials and examples
+- [ ] Deploy docs (GitHub Pages or Read the Docs)
 
-### 6.5 Interactive Customization
-- [ ] Add interactive mode (`--interactive` flag)
-- [ ] Prompt user for topic preferences
-- [ ] Let user guide section content
-- [ ] Preview sections before final generation
-- [ ] Allow regeneration of specific sections
-- [ ] Save custom preferences for future use
+### 5.5 Release Management
+- [ ] Set up semantic versioning
+- [ ] Create CHANGELOG.md
+- [ ] Write release checklist
+- [ ] Create v2.0.0 tag (first Python release)
+- [ ] Write release notes
+- [ ] Create GitHub release
+- [ ] Announce on relevant channels
 
-### 6.6 Paper Review Generation
-- [ ] Generate fake peer reviews for generated papers
-- [ ] Include typical reviewer comments (clarity, novelty, etc.)
-- [ ] Add randomized accept/reject decisions
-- [ ] Generate author responses to reviews
-- [ ] Create full review cycle simulation
-- [ ] Document review generation usage
+---
+
+## Phase 6: Enhanced Features
+
+**Goal**: Add modern functionality beyond original Perl version
+
+### 6.1 Multiple Output Formats
+- [ ] Add PDF output (default, via pdflatex)
+- [ ] Add HTML output (via pandoc or custom)
+- [ ] Add Markdown output (simplified)
+- [ ] Add DOCX output (via pandoc)
+- [ ] Add `--format` CLI flag
+- [ ] Test all formats
+- [ ] Document format options
+
+### 6.2 Configuration System
+- [ ] Support `~/.scigenrc` (TOML/YAML)
+- [ ] Support project `.scigen.conf`
+- [ ] Support environment variables
+- [ ] Add `--config` CLI flag
+- [ ] **Security**: Validate all config values
+- [ ] Provide example configs
+- [ ] Document configuration schema
+
+### 6.3 Extended Grammar Support
+- [ ] Create `rules/` directory structure
+- [ ] Keep original CS rules (backward compatible)
+- [ ] Add biology grammar rules (`rules/biology.in`)
+- [ ] Add physics grammar rules (`rules/physics.in`)
+- [ ] Add `--field` CLI flag (cs, bio, physics)
+- [ ] Test multi-domain generation
+- [ ] Document grammar extension
+
+### 6.4 Additional Content Types
+- [ ] Generate theorems (structured gibberish)
+- [ ] Generate proofs
+- [ ] Generate data tables
+- [ ] Generate equations (LaTeX math mode)
+- [ ] Generate algorithm pseudocode
+- [ ] Generate experimental results
+- [ ] Integrate into paper structure
+- [ ] Test all content types
+
+### 6.5 Web Interface
+- [ ] Choose web framework (FastAPI recommended)
+- [ ] Design REST API
+- [ ] **Security**: Add authentication (API keys)
+- [ ] **Security**: Add rate limiting
+- [ ] **Security**: Add CORS configuration
+- [ ] Implement paper generation endpoint
+- [ ] Implement status/health endpoints
+- [ ] Create simple HTML frontend
+- [ ] Add file download functionality
+- [ ] Deploy (Docker Compose)
+- [ ] Document API with OpenAPI/Swagger
+
+### 6.6 Citation Style Support
+- [ ] Research citation formats (IEEE, APA, MLA, Chicago)
+- [ ] Create BibTeX style files or use existing
+- [ ] Add `--cite-style` flag
+- [ ] Test each citation style
+- [ ] Document supported styles
+
+---
+
+## Phase 7: AI Integration (LLM Features)
+
+**Goal**: Enhance SCIgen with LLM capabilities (security-first)
+
+### 7.1 LLM Infrastructure
+- [ ] Add anthropic SDK (optional dependency)
+- [ ] Add openai SDK (optional dependency)
+- [ ] Add langchain (optional dependency)
+- [ ] **Security**: Environment-based API key management
+- [ ] **Security**: Never log API keys
+- [ ] **Security**: Token usage limits
+- [ ] **Security**: Cost tracking and alerts
+- [ ] **Security**: Timeout protection
+- [ ] Design LLM abstraction layer (provider-agnostic)
+- [ ] Error handling for API failures
+
+### 7.2 Prompt Injection Prevention
+- [ ] **Security**: Design secure prompt templates
+- [ ] **Security**: Input sanitization for prompts
+- [ ] **Security**: Use structured prompts (never concatenate user input)
+- [ ] **Security**: Implement prompt validation
+- [ ] **Security**: Test suite for injection attacks
+- [ ] **Security**: Monitor for suspicious patterns
+- [ ] Document security considerations
+- [ ] Example: `f"Generate abstract for: {sanitized_input}"` not `f"{user_input}"`
+
+### 7.3 LLM-Enhanced Content
+- [ ] Add `--ai-mode` flag
+- [ ] Generate coherent abstracts with LLM
+- [ ] Generate coherent introductions with LLM
+- [ ] Keep methodology as gibberish (preserve original)
+- [ ] Add coherence slider (0-100%)
+- [ ] **Security**: Sanitize LLM outputs for LaTeX
+- [ ] **Security**: Validate LLM response structure
+- [ ] Test quality at different coherence levels
+- [ ] Compare speed (classic vs AI-enhanced)
+- [ ] Document AI usage and limitations
+
+### 7.4 Grammar Rule Generation with AI
+- [ ] Design prompts for vocabulary generation
+- [ ] Expand system_names.in with LLM
+- [ ] Add emerging tech terms (blockchain, ML, quantum)
+- [ ] Validate generated rules
+- [ ] Create tool: `scigen-expand-grammar --ai`
+- [ ] **Security**: Review AI-generated rules before including
+- [ ] Document AI grammar expansion
+
+### 7.5 Style Transfer
+- [ ] Collect corpus of academic papers
+- [ ] Extract stylistic features
+- [ ] Design style transfer prompts
+- [ ] Add `--mimic` flag
+- [ ] Test mimicry (Knuth, Dijkstra styles)
+- [ ] **Security**: Validate style inputs
+- [ ] Add ethical use disclaimer
+- [ ] Document style transfer
+
+### 7.6 SCIgen Detection System
+- [ ] Collect training data (real vs SCIgen papers)
+- [ ] Train classifier (scikit-learn or simple heuristics)
+- [ ] Create `scigen-detect` CLI command
+- [ ] Add detection API endpoint
+- [ ] **Security**: Rate limit detection API
+- [ ] Test on historical accepted SCIgen papers
+- [ ] Document accuracy and limitations
+- [ ] Consider separate package
+
+### 7.7 Interactive Mode
+- [ ] Add `--interactive` CLI flag
+- [ ] Prompt for topic preferences
+- [ ] Preview sections before generation
+- [ ] Allow section regeneration
+- [ ] Save preferences
+- [ ] **Security**: Validate all interactive inputs
+- [ ] Rich terminal UI (with prompts)
+
+### 7.8 Peer Review Generation
+- [ ] Generate fake reviews from grammar
+- [ ] Add LLM-enhanced reviews (optional)
+- [ ] Include accept/reject decisions
+- [ ] Generate author responses
+- [ ] Simulate full review cycle
+- [ ] Add `--with-reviews` flag
+- [ ] Document review generation
+
+---
+
+## Security Checklist (OWASP Compliance)
+
+### OWASP Top 10 Implementation
+
+- [ ] **A01 Broken Access Control**: Rate limiting, authentication for web API
+- [ ] **A02 Cryptographic Failures**: Secrets in env vars, encrypted at rest
+- [ ] **A03 Injection**: Input validation (Pydantic), output sanitization, no eval/exec
+- [ ] **A04 Insecure Design**: Threat modeling, secure defaults, fail securely
+- [ ] **A05 Security Misconfiguration**: Secure configs, minimal dependencies
+- [ ] **A06 Vulnerable Components**: Automated scanning (Safety, Dependabot)
+- [ ] **A07 Auth Failures**: Strong auth for web UI, session management
+- [ ] **A08 Integrity Failures**: Signed releases, dependency checksums
+- [ ] **A09 Logging**: Security event logging, privacy-compliant
+- [ ] **A10 SSRF**: URL validation, allowlists
+
+### OWASP LLM Top 10 Implementation
+
+- [ ] **LLM01 Prompt Injection**: Structured prompts, input sanitization
+- [ ] **LLM02 Insecure Output**: Output sanitization, validation
+- [ ] **LLM03 Training Poisoning**: N/A (using APIs)
+- [ ] **LLM04 Model DoS**: Token limits, throttling, timeouts
+- [ ] **LLM05 Supply Chain**: Official SDKs only, version pinning
+- [ ] **LLM06 Info Disclosure**: API key protection, no logging secrets
+- [ ] **LLM07 Plugin Design**: Sandbox plugins, minimal permissions
+- [ ] **LLM08 Excessive Agency**: LLM text-only, human confirmation
+- [ ] **LLM09 Overreliance**: Disclaimers, human review
+- [ ] **LLM10 Model Theft**: API key protection
+
+### Security Testing
+
+- [ ] Fuzzing for input validation
+- [ ] Injection attack testing (LaTeX, shell, prompt)
+- [ ] DoS testing (large inputs, deep recursion)
+- [ ] Dependency vulnerability scanning
+- [ ] SAST (Static Application Security Testing)
+- [ ] DAST (Dynamic Application Security Testing)
+- [ ] Penetration testing
+- [ ] Security code review
 
 ---
 
 ## Milestones & Success Criteria
 
-### Milestone 1: "It Runs" (Phase 0-1)
-**Goal**: SCIgen works reliably on modern systems
-- All scripts execute without errors
-- Dependencies documented and installable
-- Basic paper generation works end-to-end
+### Milestone 0: "Architecture Ready" (Phase 0)
+**Criteria**:
+- Python project structure created
+- Development tooling configured (pytest, mypy, ruff)
+- Security infrastructure set up (Safety, Bandit)
+- Architecture documented
+
+### Milestone 1: "Grammar Engine Working" (Phase 1)
+**Criteria**:
+- Grammar parser complete
+- Rule expansion matches Perl outputs
+- Unit tests passing (>90% coverage)
+- Security tests passing (injection, fuzzing)
+
+### Milestone 2: "Feature Parity" (Phase 2-3)
+**Criteria**:
+- Generate complete papers matching Perl
+- LaTeX compilation working
+- Figures and diagrams generated
+- All original bugs fixed
+- Integration tests passing
+
+### Milestone 3: "Production Ready" (Phase 4-5)
+**Criteria**:
+- PyPI package published
 - Docker image available
-
-### Milestone 2: "It's Solid" (Phase 2-3)
-**Goal**: Code is clean, secure, and tested
-- No security vulnerabilities
-- Test coverage > 80%
-- All known bugs fixed
-- CI/CD passing on all platforms
-
-### Milestone 3: "It's Modern" (Phase 4-5)
-**Goal**: Easy to use and extend
-- Multiple output formats supported
-- Additional content types available
-- Web interface deployed (optional)
+- CI/CD pipeline operational
 - Documentation complete
+- Security scans clean
 
-### Milestone 4: "It's Enhanced" (Phase 6)
-**Goal**: AI-powered features working
+### Milestone 4: "Enhanced" (Phase 6)
+**Criteria**:
+- Multiple output formats supported
+- Web interface deployed
+- Extended grammar (bio, physics)
+- Configuration system working
+
+### Milestone 5: "AI-Powered" (Phase 7)
+**Criteria**:
 - LLM integration functional
+- Prompt injection prevention validated
 - Detection system operational
-- Style transfer demonstrated
 - Interactive mode available
-
----
-
-## Notes & Decisions
-
-### What to Preserve
-- Original grammar files (for historical authenticity)
-- Core expansion algorithm (it works well)
-- Seed-based reproducibility (for testing/comparison)
-- Command-line interface (add to it, don't replace)
-
-### What to Change
-- File paths and temp file handling
-- Dependency management
-- Error handling and messaging
-- Security practices
-- Documentation
-
-### What to Add
-- Testing framework
-- Docker support
-- Web interface (optional)
-- AI enhancements (optional)
-- Multiple output formats
-
-### Open Questions
-- [ ] Should we maintain backward compatibility with old grammar files?
-- [ ] Should we create a plugin system for custom content generators?
-- [ ] Should we support multiple languages (i18n)?
-- [ ] Should we create a desktop GUI (Electron/Qt)?
-- [ ] What's the best way to distribute pre-built binaries?
 
 ---
 
 ## Timeline Estimates
 
-**Note**: These are rough estimates for a single developer working part-time.
+**Note**: Estimates for single developer, part-time (10-15 hrs/week)
 
-- **Phase 0-1**: 1-2 weeks (Foundation & Portability)
-- **Phase 2-3**: 2-3 weeks (Code Quality & Testing)
-- **Phase 4**: 1 week (Containerization)
-- **Phase 5**: 2-3 weeks (Enhanced Features)
-- **Phase 6**: 3-4 weeks (AI Integration)
+- **Phase 0**: 1 week (Architecture & Planning)
+- **Phase 1**: 2-3 weeks (Core Grammar Engine - critical path)
+- **Phase 2**: 2-3 weeks (Paper Generation)
+- **Phase 3**: 1-2 weeks (Graphics & Diagrams)
+- **Phase 4**: 1-2 weeks (Testing & QA)
+- **Phase 5**: 1 week (Packaging & Distribution)
+- **Phase 6**: 2-3 weeks (Enhanced Features)
+- **Phase 7**: 3-4 weeks (AI Integration)
 
-**Total**: 9-13 weeks for full modernization
+**Total**: 13-19 weeks (3-5 months part-time)
 
 ---
 
 ## Getting Started
 
-### First Sprint (Immediate Tasks)
-1. Complete Phase 0.1 (Environment Setup)
-2. Create `.gitignore`
-3. Update README.md
-4. Test basic generation
-5. Document what works/breaks
+### Immediate Next Steps (Phase 0)
 
-### Quick Wins (Low-hanging fruit)
-- Add `--help` flag
-- Create `.gitignore`
-- Fix `/tmp` hardcoding
-- Add basic error messages
-- Create Docker container
+1. **Study Perl Code** (3-4 hours)
+   - Read `scigen.pm` thoroughly
+   - Trace rule expansion logic
+   - Document all features
+
+2. **Set Up Python Project** (1-2 hours)
+   ```bash
+   poetry new scigen-python
+   cd scigen-python
+   poetry add click pydantic pytest mypy ruff
+   poetry add --group dev pytest-cov bandit safety
+   ```
+
+3. **Create Project Structure** (1 hour)
+   ```
+   scigen-python/
+   ├── src/scigen/
+   │   ├── __init__.py
+   │   ├── core/          # Grammar engine
+   │   ├── generators/    # Paper, graph, diagram
+   │   ├── cli/          # Command-line interface
+   │   └── utils/        # Utilities
+   ├── tests/
+   ├── docs/
+   ├── grammar/          # Copy .in files
+   └── pyproject.toml
+   ```
+
+4. **Configure Tools** (1 hour)
+   - Set up pytest configuration
+   - Configure mypy (strict mode)
+   - Configure ruff
+   - Set up pre-commit hooks
+
+5. **Start Phase 1** (ongoing)
+   - Begin grammar parser implementation
+   - Write tests as you go (TDD)
+
+### Quick Wins (Early Momentum)
+
+- [ ] Parse simple grammar rules
+- [ ] Implement basic rule expansion
+- [ ] Generate a title (SCI_TITLE rule)
+- [ ] Match Perl output for one rule
+- [ ] First passing test
+
+---
+
+## Open Questions & Decisions
+
+### Architecture Decisions
+- [ ] Click vs Typer for CLI? (Recommendation: Typer for better type support)
+- [ ] Jinja2 vs string.Template for LaTeX? (Recommendation: Jinja2 for power)
+- [ ] matplotlib vs plotly? (Recommendation: matplotlib for simplicity)
+- [ ] FastAPI vs Flask for web? (Recommendation: FastAPI for async + OpenAPI)
+
+### Feature Decisions
+- [ ] Support Python 3.11+ only, or support 3.9+? (Recommendation: 3.11+)
+- [ ] Make AI features optional or core? (Recommendation: optional extras)
+- [ ] Maintain 100% Perl output compatibility? (Recommendation: Close, but don't sacrifice for it)
+- [ ] Plugin system for custom generators? (Recommendation: Phase 8+)
+
+### Distribution Decisions
+- [ ] Package name on PyPI? (Check availability: scigen, scigen-py, scigen2)
+- [ ] License? (Keep GPL-2.0 for compatibility with original)
+- [ ] Versioning? (Start at v2.0.0 to indicate major rewrite)
+
+---
+
+## Resources
+
+### Python Libraries
+- **Core**: click/typer, pydantic, rich
+- **LaTeX**: subprocess (pdflatex), jinja2 (templates)
+- **Graphics**: matplotlib, graphviz, pillow
+- **Testing**: pytest, pytest-cov, hypothesis
+- **Quality**: mypy, ruff, bandit, safety
+- **AI**: anthropic, openai, langchain (optional)
+
+### Security Resources
+- [OWASP Top 10](https://owasp.org/www-project-top-ten/)
+- [OWASP LLM Top 10](https://owasp.org/www-project-top-10-for-large-language-model-applications/)
+- [OWASP Cheat Sheets](https://cheatsheetseries.owasp.org/)
+- [Bandit SAST Tool](https://bandit.readthedocs.io/)
+- [Safety Dependency Scanner](https://github.com/pyupio/safety)
+
+### Development Resources
+- [Python Packaging Guide](https://packaging.python.org/)
+- [Poetry Documentation](https://python-poetry.org/)
+- [pytest Documentation](https://docs.pytest.org/)
+- [mypy Type Checking](https://mypy.readthedocs.io/)
 
 ---
 
 **Last Updated**: 2026-01-12
-**Next Review**: After Phase 1 completion
+**Next Review**: After Phase 0 completion
+**Next Milestone**: Milestone 0 - Architecture Ready
