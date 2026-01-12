@@ -709,11 +709,22 @@ Key Security Principles:
 - **AI**: anthropic, openai, langchain (optional)
 
 ### Security Resources
+
+**Local Reference Documents** (see `docs/security/` directory):
+- **OWASP LLM Top 10** - `LLMAll_en-US_FINAL.pdf` (comprehensive guide, 8.4 MB)
+- **OWASP Top 10 for Agentic Applications 2026** - Latest guidance for AI agents
+- **OWASP GenAI COMPASS RunBook** - Operational security procedures
+- **OWASP GenAI Solutions Reference Guide** - Technical implementations and code examples
+- **MCP Server Security CheatSheet** - Third-party integration best practices
+
+**Online Resources**:
 - [OWASP Top 10](https://owasp.org/www-project-top-ten/)
 - [OWASP LLM Top 10](https://owasp.org/www-project-top-10-for-large-language-model-applications/)
 - [OWASP Cheat Sheets](https://cheatsheetseries.owasp.org/)
 - [Bandit SAST Tool](https://bandit.readthedocs.io/)
 - [Safety Dependency Scanner](https://github.com/pyupio/safety)
+
+📖 See `docs/security/README.md` for detailed descriptions and relevance ratings for each reference document.
 
 ### Development Resources
 - [Python Packaging Guide](https://packaging.python.org/)

@@ -376,10 +376,20 @@ As we rewrite SCIgen and add AI capabilities, **security is a first-class requir
 
 ### Security Resources
 
+**Local Reference Documents** (see `docs/security/` directory):
+- **OWASP LLM Top 10** - `LLMAll_en-US_FINAL.pdf` (8.4 MB)
+- **OWASP Top 10 for Agentic Applications 2026** - Brand new guidance for AI agents
+- **OWASP GenAI COMPASS RunBook** - Operational security guide
+- **OWASP GenAI Solutions Reference Guide** - Technical implementations
+- **MCP Server Security CheatSheet** - Third-party integration security
+
+**Online Resources**:
 - [OWASP Top 10](https://owasp.org/www-project-top-ten/)
 - [OWASP Top 10 for LLM Applications](https://owasp.org/www-project-top-10-for-large-language-model-applications/)
 - [OWASP Cheat Sheet Series](https://cheatsheetseries.owasp.org/)
 - [OWASP API Security Top 10](https://owasp.org/www-project-api-security/)
+
+📖 See `docs/security/README.md` for detailed descriptions of each reference document.
 
 ## Python Rewrite Roadmap
 
